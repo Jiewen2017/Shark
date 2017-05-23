@@ -78,7 +78,7 @@ namespace shark {
 class RFTrainer 
 : public AbstractTrainer<RFClassifier, unsigned int>
 , public AbstractTrainer<RFClassifier>,
-  public IParameterizable
+  public IParameterizable<>
 {
 
 public:
