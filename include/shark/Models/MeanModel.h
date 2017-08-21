@@ -36,24 +36,24 @@
 #define SHARK_MODELS_MEANMODEL_H
 
 namespace shark {
-///
 /// \brief Calculates the weighted mean of a set of models
-///
 template<class ModelType>
-class MeanModel : public AbstractModel<typename ModelType::InputType, typename ModelType::OutputType>
+class MeanModel : public ModelType::ModelBaseType
 {
 private:
-	typedef AbstractModel<typename ModelType::InputType, typename ModelType::OutputType> base_type;
+	typedef typename ModelType::ModelBaseType ModelBaseType;
 public:
-	
+	typedef typename ModelBaseType::BatchInputType BatchInputType;
+	typedef typename ModelBaseType::BatchOutputType BatchOutputType;
+	typedef typename ModelBaseType::ParameterVectorType ParameterVectorType;
 	/// Constructor
 	MeanModel():m_weightSum(0){}
 	
 	std::string name() const
 	{ return "MeanModel"; }
 
-	using base_type::eval;
-	void eval(typename base_type::BatchInputType const& patterns, typename base_type::BatchOutputType& outputs)const{
+	using ModelBaseType::eval;
+	void eval(BatchInputType const& patterns, BatchOutputType& outputs)const{
 		m_models[0].eval(patterns,outputs);
 		outputs *=m_weight[0];
 		for(std::size_t i = 1; i != m_models.size(); i++) 
@@ -61,18 +61,18 @@ public:
 		outputs /= m_weightSum;
 	}
 	
-	void eval(typename base_type::BatchInputType const& patterns, typename base_type::BatchOutputType& outputs, State& state)const{
+	void eval(BatchInputType const& patterns, BatchOutputType& outputs, State& state)const{
 		eval(patterns,outputs);
 	}
 
 
 	/// This model does not have any parameters.
-	RealVector parameterVector() const {
-		return RealVector();
+	ParameterVectorType parameterVector() const {
+		return {};
 	}
 
 	/// This model does not have any parameters
-	void setParameterVector(const RealVector& param) {
+	void setParameterVector(ParameterVectorType const& param) {
 		SHARK_ASSERT(param.size() == 0);
 	}
 	void read(InArchive& archive){
@@ -101,7 +101,7 @@ public:
 		SHARK_RUNTIME_CHECK(weight > 0, "Weights must be positive");
 		m_models.push_back(model);
 		m_weight.push_back(weight);
-		m_weightSum+=weight;
+		m_weightSum += weight;
 	}
 
 	/// \brief Returns the weight of the i-th model
@@ -121,13 +121,13 @@ public:
 	}
 
 protected:
-	/// collection of models.
+	/// \brief collection of models.
 	std::vector<ModelType> m_models;
 
-	/// Weight of the mean.
-	std::vector<double> m_weight;
+	/// \brief Weight of the mean.
+	RealVector m_weight;
 
-	/// Total sum of weights.
+	/// \brief Total sum of weights.
 	double m_weightSum;
 };
 
